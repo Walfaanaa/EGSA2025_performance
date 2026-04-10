@@ -9,11 +9,12 @@ st.set_page_config(page_title="EGSA Performance", layout="wide")
 st.title("🏆 EGSA Member Performance Dashboard")
 
 # =========================
-# LOAD DATA
+# LOAD DATA FROM GITHUB
 # =========================
 @st.cache_data
 def load_data():
-    return pd.read_csv("EGSA2025_performance.csv")
+    url = "https://raw.githubusercontent.com/Walfaanaa/EGSA2025_performance/main/EGSA2025_performance.csv"
+    return pd.read_csv(url)
 
 df = load_data()
 
@@ -23,7 +24,7 @@ df = load_data()
 df = df.fillna(0)
 
 # =========================
-# AVOID DIVISION BY ZERO (IMPORTANT FIX)
+# SAFE DIVISION
 # =========================
 def safe_div(a, b):
     return a / b if b != 0 else 0
@@ -39,7 +40,6 @@ df["score"] = (
     safe_div(df["volentary_saving"], df["volentary_saving"].max()) * 10 +
     safe_div(df["fee_charge"], df["fee_charge"].max()) * 5 +
     safe_div(df["no_new_members_by"], df["no_new_members_by"].max()) * 20
-
 )
 
 # =========================
@@ -48,7 +48,7 @@ df["score"] = (
 df["rank"] = df["score"].rank(ascending=False, method="dense")
 
 # =========================
-# REWARD SYSTEM (FIXED - RANK BASED)
+# REWARD SYSTEM
 # =========================
 total = len(df)
 
