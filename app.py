@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # =========================
 # PAGE CONFIG
@@ -9,7 +10,7 @@ st.set_page_config(page_title="EGSA Performance", layout="wide")
 st.title("🏆 EGSA Member Performance Dashboard")
 
 # =========================
-# LOAD DATA FROM GITHUB
+# LOAD DATA
 # =========================
 @st.cache_data
 def load_data():
@@ -19,59 +20,60 @@ def load_data():
 df = load_data()
 
 # =========================
-# HANDLE EMPTY VALUES
+# CLEAN DATA
 # =========================
 df = df.fillna(0)
 
 # =========================
-# SAFE DIVISION
+# NORMALIZATION FUNCTION
 # =========================
-def safe_div(a, b):
-    return a / b if b != 0 else 0
+def normalize(col):
+    max_val = col.max()
+    return col / max_val if max_val != 0 else 0
 
 # =========================
 # SCORE CALCULATION
 # =========================
 df["score"] = (
-    safe_div(df["loan_freq"], df["loan_freq"].max()) * 15 +
-    safe_div(df["total_interest_amount"], df["total_interest_amount"].max()) * 15 +
-    safe_div(df["monthly_payment"], df["monthly_payment"].max()) * 15 +
-    safe_div(df["achievement"], df["achievement"].max()) * 15 +
-    safe_div(df["volentary_saving"], df["volentary_saving"].max()) * 10 +
-    safe_div(df["fee_charge"], df["fee_charge"].max()) * 5 +
-    safe_div(df["Benefit_gain"], df["Benefit_gain"].max()) * 5 +
-    safe_div(df["no_new_members_by"], df["no_new_members_by"].max()) * 20
+    normalize(df["loan_freq"]) * 15 +
+    normalize(df["total_interest_amount"]) * 15 +
+    normalize(df["monthly_payment"]) * 15 +
+    normalize(df["achievement"]) * 15 +
+    normalize(df["volentary_saving"]) * 10 +
+    normalize(df["fee_charge"]) * 5 +
+    normalize(df["Benefit_gain"]) * 5 +
+    normalize(df["no_new_members_by"]) * 20
 )
 
 # =========================
 # RANKING
 # =========================
-df["rank"] = df["score"].rank(ascending=False, method="dense")
+df["rank"] = df["score"].rank(ascending=False, method="dense").astype(int)
 
 # =========================
 # REWARD SYSTEM
 # =========================
 total = len(df)
 
-def get_reward_by_rank(rank):
+def get_reward(rank):
     if rank <= total * 0.1:
-        return "🥇 Gold"
+        return "Gold"
     elif rank <= total * 0.3:
-        return "🥈 Silver"
+        return "Silver"
     elif rank <= total * 0.6:
-        return "🥉 Bronze"
+        return "Bronze"
     else:
         return "Needs Improvement"
 
-df["reward"] = df["rank"].apply(get_reward_by_rank)
+df["reward"] = df["rank"].apply(get_reward)
 
 # =========================
-# SORT DATA
+# SORT
 # =========================
 df = df.sort_values(by="rank")
 
 # =========================
-# DASHBOARD SUMMARY
+# SUMMARY
 # =========================
 col1, col2, col3 = st.columns(3)
 
@@ -80,19 +82,22 @@ col2.metric("Top Score", round(df["score"].max(), 2))
 col3.metric("Average Score", round(df["score"].mean(), 2))
 
 # =========================
-# TOP PERFORMERS
+# TOP 10
 # =========================
 st.subheader("🏆 Top 10 Performers")
-st.dataframe(df.head(10), use_container_width=True)
+st.dataframe(
+    df.head(10).style.background_gradient(cmap="Greens"),
+    use_container_width=True
+)
 
 # =========================
-# FULL DATA TABLE
+# ALL DATA
 # =========================
 st.subheader("📊 All Members Performance")
 st.dataframe(df, use_container_width=True)
 
 # =========================
-# SEARCH MEMBER
+# SEARCH
 # =========================
 st.subheader("🔍 Search Member")
 
@@ -107,7 +112,40 @@ if member_id:
         st.error("Member not found")
 
 # =========================
-# DOWNLOAD OPTION
+# PIE CHART (REWARD DISTRIBUTION)
+# =========================
+st.subheader("🎯 Reward Distribution")
+
+reward_counts = df["reward"].value_counts()
+
+labels = reward_counts.index
+sizes = reward_counts.values
+
+# Custom colors
+color_map = {
+    "Gold": "green",
+    "Silver": "blue",
+    "Bronze": "yellow",
+    "Needs Improvement": "red"
+}
+
+colors = [color_map[label] for label in labels]
+
+fig, ax = plt.subplots()
+ax.pie(
+    sizes,
+    labels=labels,
+    autopct="%1.1f%%",
+    startangle=90,
+    colors=colors
+)
+
+ax.axis("equal")
+
+st.pyplot(fig)
+
+# =========================
+# DOWNLOAD
 # =========================
 st.download_button(
     label="📥 Download Results",
