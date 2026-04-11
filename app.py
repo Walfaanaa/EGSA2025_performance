@@ -33,12 +33,13 @@ def safe_div(a, b):
 # SCORE CALCULATION
 # =========================
 df["score"] = (
-    safe_div(df["loan_freq"], df["loan_freq"].max()) * 20 +
+    safe_div(df["loan_freq"], df["loan_freq"].max()) * 15 +
     safe_div(df["total_interest_amount"], df["total_interest_amount"].max()) * 15 +
     safe_div(df["monthly_payment"], df["monthly_payment"].max()) * 15 +
     safe_div(df["achievement"], df["achievement"].max()) * 15 +
     safe_div(df["volentary_saving"], df["volentary_saving"].max()) * 10 +
     safe_div(df["fee_charge"], df["fee_charge"].max()) * 5 +
+    safe_div(df["Benefit_gain"], df["Benefit_gain"].max()) * 5 +
     safe_div(df["no_new_members_by"], df["no_new_members_by"].max()) * 20
 )
 
