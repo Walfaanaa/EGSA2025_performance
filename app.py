@@ -25,7 +25,7 @@ df = load_data()
 df = df.fillna(0)
 
 # =========================
-# NORMALIZATION FUNCTION
+# NORMALIZATION
 # =========================
 def normalize(col):
     max_val = col.max()
@@ -73,13 +73,37 @@ df["reward"] = df["rank"].apply(get_reward)
 df = df.sort_values(by="rank")
 
 # =========================
+# FORMAT DATA (IMPORTANT)
+# =========================
+
+# Integer columns
+df["loan_freq"] = df["loan_freq"].astype(int)
+df["no_new_members_by"] = df["no_new_members_by"].astype(int)
+df["rank"] = df["rank"].astype(int)
+
+# Round float columns
+float_cols = [
+    "total_interest_amount",
+    "monthly_payment",
+    "achievement",
+    "volentary_saving",
+    "fee_charge",
+    "Benefit_gain",
+    "score"
+]
+
+for col in float_cols:
+    if col in df.columns:
+        df[col] = df[col].round(2)
+
+# =========================
 # SUMMARY
 # =========================
 col1, col2, col3 = st.columns(3)
 
 col1.metric("Total Members", len(df))
-col2.metric("Top Score", round(df["score"].max(), 2))
-col3.metric("Average Score", round(df["score"].mean(), 2))
+col2.metric("Top Score", f"{df['score'].max():.2f}")
+col3.metric("Average Score", f"{df['score'].mean():.2f}")
 
 # =========================
 # TOP 10
@@ -94,7 +118,16 @@ st.dataframe(
 # ALL DATA
 # =========================
 st.subheader("📊 All Members Performance")
-st.dataframe(df, use_container_width=True)
+
+st.dataframe(
+    df.style.format({
+        "loan_freq": "{:.0f}",
+        "no_new_members_by": "{:.0f}",
+        "rank": "{:.0f}",
+        "score": "{:.2f}"
+    }),
+    use_container_width=True
+)
 
 # =========================
 # SEARCH
@@ -112,7 +145,7 @@ if member_id:
         st.error("Member not found")
 
 # =========================
-# PIE CHART (REWARD DISTRIBUTION)
+# PIE CHART
 # =========================
 st.subheader("🎯 Reward Distribution")
 
@@ -121,7 +154,6 @@ reward_counts = df["reward"].value_counts()
 labels = reward_counts.index
 sizes = reward_counts.values
 
-# Custom colors
 color_map = {
     "Gold": "green",
     "Silver": "blue",
@@ -132,6 +164,7 @@ color_map = {
 colors = [color_map[label] for label in labels]
 
 fig, ax = plt.subplots()
+
 ax.pie(
     sizes,
     labels=labels,
