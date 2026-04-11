@@ -81,7 +81,7 @@ df["loan_freq"] = df["loan_freq"].astype(int)
 df["no_new_members_by"] = df["no_new_members_by"].astype(int)
 df["rank"] = df["rank"].astype(int)
 
-# Round float columns
+# Round float columns to 2 decimals
 float_cols = [
     "total_interest_amount",
     "monthly_payment",
@@ -97,6 +97,22 @@ for col in float_cols:
         df[col] = df[col].round(2)
 
 # =========================
+# DISPLAY FORMAT STYLE
+# =========================
+format_style = {
+    "loan_freq": "{:.0f}",
+    "no_new_members_by": "{:.0f}",
+    "rank": "{:.0f}",
+    "total_interest_amount": "{:.2f}",
+    "monthly_payment": "{:.2f}",
+    "achievement": "{:.2f}",
+    "volentary_saving": "{:.2f}",
+    "fee_charge": "{:.2f}",
+    "Benefit_gain": "{:.2f}",
+    "score": "{:.2f}"
+}
+
+# =========================
 # SUMMARY
 # =========================
 col1, col2, col3 = st.columns(3)
@@ -109,23 +125,22 @@ col3.metric("Average Score", f"{df['score'].mean():.2f}")
 # TOP 10
 # =========================
 st.subheader("🏆 Top 10 Performers")
+
 st.dataframe(
-    df.head(10).style.background_gradient(cmap="Greens"),
+    df.head(10)
+    .style
+    .format(format_style)
+    .background_gradient(cmap="Greens"),
     use_container_width=True
 )
 
 # =========================
-# ALL DATA
+# FULL TABLE
 # =========================
 st.subheader("📊 All Members Performance")
 
 st.dataframe(
-    df.style.format({
-        "loan_freq": "{:.0f}",
-        "no_new_members_by": "{:.0f}",
-        "rank": "{:.0f}",
-        "score": "{:.2f}"
-    }),
+    df.style.format(format_style),
     use_container_width=True
 )
 
@@ -140,7 +155,7 @@ if member_id:
     result = df[df["id"].astype(str) == member_id]
     if not result.empty:
         st.success("Member Found")
-        st.dataframe(result, use_container_width=True)
+        st.dataframe(result.style.format(format_style), use_container_width=True)
     else:
         st.error("Member not found")
 
