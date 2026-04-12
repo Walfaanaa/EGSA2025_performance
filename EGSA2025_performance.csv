@@ -1,4 +1,4 @@
-id,loan_freq,total_interest_amount,monthly_payment,Q2_achievement,volentary_saving,fee_charge,Benefit_gain,no_new_members_by
+id,loan_freq,total_interest_amount,monthly_payment,achievement,volentary_saving,fee_charge,Benefit_gain,no_new_members_by
 1001,NULL,NULL,5000.00,72000.00,0.00,242.00,0.00,NULL
 1002,3,17500.00,5000.00,132525.00,0.00,1400.00,23625.00,2
 1003,2,17250.00,5000.00,120500.00,0.00,650.00,15250.00,NULL
