@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 # PAGE CONFIG
 # =========================
 st.set_page_config(page_title="EGSA Performance", layout="wide")
-
 st.title("🏆 EGSA Member Performance Dashboard")
 
 # =========================
@@ -15,17 +14,45 @@ st.title("🏆 EGSA Member Performance Dashboard")
 @st.cache_data
 def load_data():
     url = "https://raw.githubusercontent.com/Walfaanaa/EGSA2025_performance/main/EGSA2025_performance.csv"
-    return pd.read_csv(url)
+    df = pd.read_csv(url)
+
+    # CLEAN COLUMN NAMES (FIXES YOUR ERROR)
+    df.columns = df.columns.str.strip().str.lower()
+
+    return df
 
 df = load_data()
 
 # =========================
-# CLEAN DATA
+# REQUIRED COLUMNS CHECK
 # =========================
-df = df.fillna(0)
+required_cols = [
+    "id",
+    "loan_freq",
+    "total_interest_amount",
+    "monthly_payment",
+    "achievement",
+    "volentary_saving",
+    "fee_charge",
+    "benefit_gain",
+    "no_new_members_by"
+]
+
+missing = [col for col in required_cols if col not in df.columns]
+
+if missing:
+    st.error(f"❌ Missing columns in CSV: {missing}")
+    st.stop()
 
 # =========================
-# NORMALIZATION
+# CLEAN DATA TYPES (SAFE)
+# =========================
+for col in required_cols:
+    if col != "id":
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+
+# =========================
+# NORMALIZATION FUNCTION
 # =========================
 def normalize(col):
     max_val = col.max()
@@ -41,7 +68,7 @@ df["score"] = (
     normalize(df["achievement"]) * 15 +
     normalize(df["volentary_saving"]) * 10 +
     normalize(df["fee_charge"]) * 5 +
-    normalize(df["Benefit_gain"]) * 5 +
+    normalize(df["benefit_gain"]) * 5 +
     normalize(df["no_new_members_by"]) * 20
 )
 
@@ -73,31 +100,27 @@ df["reward"] = df["rank"].apply(get_reward)
 df = df.sort_values(by="rank")
 
 # =========================
-# FORMAT DATA (IMPORTANT)
+# FORMAT DATA
 # =========================
-
-# Integer columns
 df["loan_freq"] = df["loan_freq"].astype(int)
 df["no_new_members_by"] = df["no_new_members_by"].astype(int)
 df["rank"] = df["rank"].astype(int)
 
-# Round float columns to 2 decimals
 float_cols = [
     "total_interest_amount",
     "monthly_payment",
     "achievement",
     "volentary_saving",
     "fee_charge",
-    "Benefit_gain",
+    "benefit_gain",
     "score"
 ]
 
 for col in float_cols:
-    if col in df.columns:
-        df[col] = df[col].round(2)
+    df[col] = df[col].round(2)
 
 # =========================
-# DISPLAY FORMAT STYLE
+# FORMAT STYLE
 # =========================
 format_style = {
     "loan_freq": "{:.0f}",
@@ -108,7 +131,7 @@ format_style = {
     "achievement": "{:.2f}",
     "volentary_saving": "{:.2f}",
     "fee_charge": "{:.2f}",
-    "Benefit_gain": "{:.2f}",
+    "benefit_gain": "{:.2f}",
     "score": "{:.2f}"
 }
 
@@ -127,10 +150,7 @@ col3.metric("Average Score", f"{df['score'].mean():.2f}")
 st.subheader("🏆 Top 10 Performers")
 
 st.dataframe(
-    df.head(10)
-    .style
-    .format(format_style)
-    .background_gradient(cmap="Greens"),
+    df.head(10).style.format(format_style).background_gradient(cmap="Greens"),
     use_container_width=True
 )
 
@@ -152,12 +172,12 @@ st.subheader("🔍 Search Member")
 member_id = st.text_input("Enter Member ID")
 
 if member_id:
-    result = df[df["id"].astype(str) == member_id]
+    result = df[df["id"].astype(str) == member_id.strip()]
     if not result.empty:
-        st.success("Member Found")
+        st.success("✅ Member Found")
         st.dataframe(result.style.format(format_style), use_container_width=True)
     else:
-        st.error("Member not found")
+        st.error("❌ Member not found")
 
 # =========================
 # PIE CHART
@@ -172,7 +192,7 @@ sizes = reward_counts.values
 color_map = {
     "Gold": "green",
     "Silver": "blue",
-    "Bronze": "yellow",
+    "Bronze": "orange",
     "Needs Improvement": "red"
 }
 
