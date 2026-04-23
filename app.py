@@ -13,7 +13,7 @@ st.title("🏆 EGSA Member Performance Dashboard")
 # =========================
 @st.cache_data
 def load_data():
-    url = "https://raw.githubusercontent.com/Walfaanaa/EGSA2025_performance/main/EGSA2025_performance.csv"
+    url = "https://raw.githubusercontent.com/Walfaanaa/EGSA2025_performance/main/EGSA2025_performance.xlsx"
     df = pd.read_csv(url)
 
     # CLEAN COLUMN NAMES (FIXES YOUR ERROR)
