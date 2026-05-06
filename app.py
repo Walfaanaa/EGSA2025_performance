@@ -201,5 +201,34 @@ st.download_button(
     label="📥 Download Results",
     data=df.to_csv(index=False),
     file_name="egsa_performance.csv",
-    mime="text/csv"
+ mime="text/csv"
 )
+
+# =========================
+# REWARD MONEY ALLOCATION (FIXED RATIO 4:2:1)
+# =========================
+st.subheader("💰 Reward Allocation (Top 3 - Fixed Ratio)")
+
+# Input total reward amount
+total_reward = st.number_input("Enter Total Reward Amount", min_value=0.0, value=00000.0)
+
+# Get top 3 performers
+top3 = df.nsmallest(3, "rank").copy()
+
+# Define ratio
+weights = [4, 2, 1]
+
+# Total weight
+total_weight = sum(weights)
+
+# Allocate rewards
+top3["allocated_reward"] = [
+    (w / total_weight) * total_reward for w in weights
+]
+
+# Round values
+top3["allocated_reward"] = top3["allocated_reward"].round(2)
+
+# Display result
+st.write("### 🏅 The three top achiever for Reward in this year are : ")
+st.dataframe(top3[["id", "score", "rank", "allocated_reward"]], use_container_width=True)
